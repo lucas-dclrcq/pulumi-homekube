@@ -1,0 +1,3 @@
+name: pulumi-homekube
+runtime: nodejs
+description: Homekube Infrastructure-as-Code
