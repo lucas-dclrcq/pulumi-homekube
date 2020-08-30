@@ -13,6 +13,7 @@ import * as config from "./config";
 const metalLbChart = new k8s.helm.v3.Chart("metallb", {
     chart: "metallb",
     version: "0.1.21",
+    namespace: "kube-system",
     fetchOpts: {
         repo: "https://charts.bitnami.com/bitnami",
     },
@@ -20,13 +21,13 @@ const metalLbChart = new k8s.helm.v3.Chart("metallb", {
         controller: {
             image: {
                 repository: "metallb/controller",
-                tag: "v0.9-arm64"
+                tag: config.metalLb.version
             }
         },
         speaker: {
             image: {
                 repository: "metallb/speaker",
-                tag: "v0.9-arm64"
+                tag: config.metalLb.version
             }
         },
         configInline: {
@@ -34,16 +35,12 @@ const metalLbChart = new k8s.helm.v3.Chart("metallb", {
                 {
                     name: "external",
                     protocol: "layer2",
-                    addresses: [
-                        "192.168.0.3/32"
-                    ]
+                    addresses: config.metalLb.externalAdressesPool
                 },
                 {
                     name: "internal",
                     protocol: "layer2",
-                    addresses: [
-                        "192.168.0.5/32"
-                    ]
+                    addresses: config.metalLb.internalAdressesPool
                 }
             ]
         },
@@ -60,7 +57,21 @@ const metalLbChart = new k8s.helm.v3.Chart("metallb", {
 
 // Traefik Internal
 
-// Traefik External
+const traefikInternalChart = new k8s.helm.v3.Chart("traefik-internal", {
+    chart: "traefik",
+    namespace: "kube-system",
+    version: "9.1.0",
+    fetchOpts: {
+        repo: "https://containous.github.io/traefik-helm-chart"
+    },
+    values: {
+       service: {
+           annotations: {
+               "metallb.universe.tf/address-pool": "internal"
+           }
+       }
+    }
+});
 
 // Cert Manager
 
